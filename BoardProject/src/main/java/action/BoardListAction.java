@@ -17,14 +17,17 @@ public class BoardListAction implements Action {
 		int page=1;
 		int limit=10;
 		
+		String searchWord = request.getParameter("SEARCH_WORD");
+		
 		if(request.getParameter("page")!=null) {
 			page=Integer.parseInt(request.getParameter("page"));
 		}
 		
 		BoardListService boardListService = new BoardListService();
-		int listCount=boardListService.getListCount(); //총 리스트 수를 받아옴
+		int listCount=boardListService.getListCount(searchWord); //총 리스트 수를 받아옴
 		
-		articleList = boardListService.getArticleList(page,limit); //리스트를 받아옴
+//		articleList = boardListService.getArticleList(page,limit); //리스트를 받아옴
+		articleList = boardListService.getArticleList(page, searchWord); //리스트를 받아옴
 		
 		//총 페이지 수
 		int maxPage=(int)((double)listCount/limit+0.95); //0.95를 더해서 올림 처리함

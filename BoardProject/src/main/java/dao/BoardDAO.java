@@ -31,19 +31,28 @@ public class BoardDAO {
 	}
 	
 	//글의 개수 구하기
-	public int selectListCount() {
+	public int selectListCount(String searchWord) {
 		
 		int listCount = 0;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		
 		try {
+			if(searchWord == null || searchWord.length() == 0) {
+				pstmt=con.prepareStatement("SELECT COUNT(*) FROM BOARD");
+				rs = pstmt.executeQuery();
+			}
+			else if(searchWord != null) {
+				pstmt=con.prepareStatement("SELECT COUNT(*) FROM BOARD WHERE BOARD_SUBJECT LIKE ? OR BOARD_CONTENT LIKE ?");
+				pstmt.setString(1, "%"+searchWord+"%");
+				pstmt.setString(2, "%"+searchWord+"%");
+				rs = pstmt.executeQuery();
+			}
 			
-			pstmt=con.prepareStatement("SELECT COUNT(*) FROM BOARD");
-			rs = pstmt.executeQuery();
-			
+//			System.out.println(rs.getInt(1));
 			if(rs.next()) {
 				listCount=rs.getInt(1);
+//				System.out.println(listCount);
 			}
 		}catch(Exception ex) {
 			System.out.println("getListCount 에러: " + ex);
@@ -57,19 +66,35 @@ public class BoardDAO {
 	}
 	
 	//글 목록 보기
-	public ArrayList<BoardBean> selectArticleList(int page, int limit) {
+//	public ArrayList<BoardBean> selectArticleList(int page, int limit) {
+	public ArrayList<BoardBean> selectArticleList(int page, String searchWord) {
 		
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 //		String board_list_sql="SELECT * FROM BOARD ORDER BY BOARD_RE_REF DESC, BOARD_RE_SEQ ASC LIMIT ? OFFSET (?-1) * 10";
-		String board_list_sql="SELECT * FROM BOARD ORDER BY BOARD_RE_REF DESC, BOARD_RE_SEQ ASC LIMIT 10 OFFSET ?";
+		
+		
+		
 		ArrayList<BoardBean> articleList = new ArrayList<BoardBean>();
 		BoardBean board = null;
 		int startrow=(page-1)*10; //읽기 시작할 row번호
-		
+//		System.out.println(searchWord);
 		try {
-			pstmt = con.prepareStatement(board_list_sql);
-			pstmt.setInt(1, startrow);
+			
+			if(searchWord == null || searchWord.length() == 0) {
+				String board_list_sql="SELECT * FROM BOARD ORDER BY BOARD_RE_REF DESC, BOARD_RE_SEQ ASC LIMIT 10 OFFSET ?";
+				pstmt = con.prepareStatement(board_list_sql);
+				pstmt.setInt(1, startrow);
+			}
+			else if(searchWord != null) {
+				String board_list_sql="SELECT * FROM BOARD WHERE board_subject LIKE ? OR board_content LIKE ? ORDER BY BOARD_RE_REF DESC, BOARD_RE_SEQ ASC LIMIT 10 OFFSET ?";
+				pstmt = con.prepareStatement(board_list_sql);
+				pstmt.setString(1, "%"+searchWord+"%");
+				pstmt.setString(2, "%"+searchWord+"%");
+				pstmt.setInt(3, startrow);
+			}
+			
+			
 			rs = pstmt.executeQuery();
 			
 			while(rs.next()) {
